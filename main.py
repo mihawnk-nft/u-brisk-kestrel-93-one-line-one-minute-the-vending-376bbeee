@@ -35,17 +35,27 @@ def validate(text: str) -> None:
     text.encode("utf-8")  # gate requires UTF-8 text
 
 
-def main():
+def write_entry(text: str) -> str:
+    """Validate the line and write it atomically to entry.txt.
+
+    The text goes to a temporary file in the same directory first,
+    then replaces the entry, so a reader never sees a half-written
+    line. Returns the entry path.
+    """
+    validate(text)
     out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
     dst = os.path.join(out_dir, "entry.txt")
-    text = LINE
-    validate(text)
     os.makedirs(out_dir, exist_ok=True)
     tmp = dst + ".tmp"
     with open(tmp, "w", encoding="utf-8", newline="\n") as f:
         f.write(text)
     os.replace(tmp, dst)
-    print("wrote %s (%d chars)" % (dst, len(text)))
+    return dst
+
+
+def main():
+    dst = write_entry(LINE)
+    print("wrote %s (%d chars)" % (dst, len(LINE)))
 
 
 if __name__ == "__main__":
